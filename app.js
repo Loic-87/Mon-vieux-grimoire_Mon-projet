@@ -2,8 +2,10 @@ require('dotenv').config();
 
 const express = require('express');
 const mongoose = require('mongoose');
+const path = require('path');
 
 const userRoutes = require('./routes/user');
+const bookRoutes = require('./routes/book');
 
 const app = express();
 
@@ -29,7 +31,13 @@ app.use((req, res, next) => {
 // Middleware global : permet de lire le corps JSON des requetes (req.body)
 app.use(express.json());
 
+// Sert les images enregistrees de maniere statique
+app.use('/images', express.static(path.join(__dirname, 'images')));
+
 // Routes d'authentification (inscription et connexion)
 app.use('/api/auth', userRoutes);
+
+// Routes des livres
+app.use('/api/books', bookRoutes);
 
 module.exports = app;
