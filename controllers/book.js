@@ -93,3 +93,28 @@ exports.deleteBook = (req, res, next) => {
     })
     .catch((error) => res.status(500).json({ error }));
 };
+
+// Ajoute la note d'un utilisateur a un livre et recalcule la moyenne
+exports.rateBook = (req, res, next) => {
+  const grade = req.body.rating;
+  Book.findOne({ _id: req.params.id })
+    .then((book) => {
+      if (!book) {
+        return res.status(404).json({ message: 'Livre introuvable' });
+      }
+      // Un utilisateur ne peut noter un livre qu'une seule fois
+      const dejaNote = book.ratings.find((r) => r.userId === req.auth.userId);
+      if (dejaNote) {
+        return res.status(400).json({ message: 'Vous avez deja note ce livre' });
+      }
+      // On ajoute la note (userId issu du token, pas du corps de la requete)
+      book.ratings.push({ userId: req.auth.userId, grade });
+      // Recalcul de la moyenne, arrondie a 1 decimale
+      const total = book.ratings.reduce((somme, r) => somme + r.grade, 0);
+      book.averageRating = Math.round((total / book.ratings.length) * 10) / 10;
+      return book.save()
+        .then((livreMisAJour) => res.status(200).json(livreMisAJour))
+        .catch((error) => res.status(400).json({ error }));
+    })
+    .catch((error) => res.status(500).json({ error }));
+};
