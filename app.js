@@ -3,6 +3,8 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const userRoutes = require('./routes/user');
 const bookRoutes = require('./routes/book');
@@ -28,11 +30,28 @@ app.use((req, res, next) => {
   next();
 });
 
+// Helmet : ajoute des en-tetes HTTP securises.
+// crossOriginResourcePolicy en "cross-origin" pour que le front (port 3000)
+// puisse afficher les images servies par l'API (port 4000).
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
+
 // Middleware global : permet de lire le corps JSON des requetes (req.body)
 app.use(express.json());
 
 // Sert les images enregistrees de maniere statique
 app.use('/images', express.static(path.join(__dirname, 'images')));
+
+// Rate limiting : limite chaque IP a 100 requetes par tranche de 15 minutes
+// (protege notamment contre le brute-force sur la connexion)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(limiter);
 
 // Routes d'authentification (inscription et connexion)
 app.use('/api/auth', userRoutes);
