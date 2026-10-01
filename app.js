@@ -63,4 +63,9 @@ app.use('/api/auth', userRoutes);
 // Routes des livres
 app.use('/api/books', bookRoutes);
 
+// Route racine : l'API s'utilise via /api/... ; ceci evite un "Cannot GET /"
+app.get('/', (req, res) => {
+  res.json({ message: 'API Mon Vieux Grimoire - les routes sont sous /api' });
+});
+
 module.exports = app;
