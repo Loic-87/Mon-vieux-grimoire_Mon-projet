@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+const fs = require('fs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
@@ -39,6 +40,9 @@ app.use(helmet({
 
 // Middleware global : permet de lire le corps JSON des requetes (req.body)
 app.use(express.json());
+
+// S'assure que le dossier des images existe (absent d'un clone frais, car ignore par git)
+fs.mkdirSync(path.join(__dirname, 'images'), { recursive: true });
 
 // Sert les images enregistrees de maniere statique
 app.use('/images', express.static(path.join(__dirname, 'images')));

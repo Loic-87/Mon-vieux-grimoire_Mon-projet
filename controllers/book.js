@@ -26,6 +26,10 @@ exports.getBestRating = (req, res, next) => {
 
 // Cree un livre : le corps arrive en JSON dans req.body.book (multipart), + une image
 exports.createBook = (req, res, next) => {
+  // Une image est obligatoire a la creation
+  if (!req.file) {
+    return res.status(400).json({ message: 'Une image est requise' });
+  }
   const bookObject = JSON.parse(req.body.book);
   // On ne fait pas confiance au userId envoye par le client : on utilise celui du token
   delete bookObject._id;
@@ -97,6 +101,10 @@ exports.deleteBook = (req, res, next) => {
 // Ajoute la note d'un utilisateur a un livre et recalcule la moyenne
 exports.rateBook = (req, res, next) => {
   const grade = req.body.rating;
+  // La note doit etre un nombre compris entre 0 et 5
+  if (typeof grade !== 'number' || grade < 0 || grade > 5) {
+    return res.status(400).json({ message: 'La note doit etre comprise entre 0 et 5' });
+  }
   Book.findOne({ _id: req.params.id })
     .then((book) => {
       if (!book) {
